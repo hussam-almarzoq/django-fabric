@@ -18,6 +18,7 @@ STATIC_FILES = 'django.contrib.staticfiles'
 class App(object):
     project_paths = {}
     project_package = None
+    testing_tool = "django"
     test_settings = None
     strict = False
     restart_command = None
@@ -32,12 +33,13 @@ class App(object):
     status_code = 200
     virtualenv_activate = 'source venv/bin/activate'
 
-    def __init__(self, project_paths=None, project_package=None, test_settings=None, strict=False,
-                 restart_command=None, loaddata_command=None, dumpdata_command=None,
+    def __init__(self, project_paths=None, project_package=None, test_settings=None, testing_tool=None,
+                 strict=False, restart_command=None, loaddata_command=None, dumpdata_command=None,
                  requirements=None, local_tables_to_flush=[], urls=None, virtualenv_activate=None):
         self.project_paths = project_paths or self.project_paths
         self.project_package = project_package or self.project_package
         self.test_settings = test_settings or self.test_settings
+        self.testing_tool = testing_tool or self.testing_tool
         self.restart_command = restart_command or self.restart_command
         self.loaddata_command = loaddata_command or self.loaddata_command
         self.dumpdata_command = dumpdata_command or self.dumpdata_command
@@ -82,13 +84,15 @@ class App(object):
     def test(self, is_deploying=True):
         with settings(warn_only=True):
             self.notify(colors.yellow('Running tests, please wait!'))
-            if settings is None:
-                command = 'test --settings=%s' % \
-                          self.test_settings
-            else:
-                command = 'test'
-            result = self.local_management_command(command, capture=True)
-
+            if self.testing_tool == "django":
+                if settings is None:
+                    command = 'test --settings=%s' % \
+                              self.test_settings
+                else:
+                    command = 'test'
+                result = self.local_management_command(command, capture=True)
+            elif self.testing_tool == "pytest":
+                result = self.local('py.test', capture=True)
         if result.failed:
             self.notify(colors.red('Tests failed'))
             if is_deploying:

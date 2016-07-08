@@ -19,6 +19,7 @@ site = App(
         %(restart_commands)s
     },
     project_package='%(project_package)s',
+    testing_tool='%(testing_tool)s'
     %(test_settings)s
 )
 
@@ -36,17 +37,18 @@ def init():
         'project_package': raw_input('What is your project package called? '),
         'server_user': raw_input('What is the server user? '),
         'server': raw_input('What is the server host? '),
+        'testing_tool': raw_input('What is your testing tool (pytest or django)? '),
         'test_settings': '',
         'urls': '',
         '_project_paths': {},
         '_restart_commands': {},
         '_urls': {}
     }
-
-    if confirm('Do you have a test configuration file?', default=False):
-        test_settings = raw_input('What is the python path to your test '
-                                  'settings(my_app.settings.test)? ')
-        settings['test_settings'] = "test_settings='%s'" % test_settings
+    if settings['testing_tool'] == "django":
+        if confirm('Do you have a test configuration file?', default=False):
+            test_settings = raw_input('What is the python path to your test '
+                                      'settings(my_app.settings.test)? ')
+            settings['test_settings'] = "test_settings='%s'" % test_settings
 
     instances = raw_input('What is the name of your instances'
                           '(use a commaseperated list)? ').split(',')
